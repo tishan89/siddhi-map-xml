@@ -31,9 +31,10 @@ import org.wso2.siddhi.core.exception.ExecutionPlanRuntimeException;
 import org.wso2.siddhi.core.query.output.callback.OutputCallback;
 import org.wso2.siddhi.core.stream.AttributeMapping;
 import org.wso2.siddhi.core.stream.input.InputHandler;
-import org.wso2.siddhi.core.stream.input.source.InputMapper;
-import org.wso2.siddhi.core.stream.input.source.InputTransport;
+import org.wso2.siddhi.core.stream.input.source.Source;
+import org.wso2.siddhi.core.stream.input.source.SourceMapper;
 import org.wso2.siddhi.core.util.AttributeConverter;
+import org.wso2.siddhi.core.util.config.ConfigReader;
 import org.wso2.siddhi.core.util.transport.OptionHolder;
 import org.wso2.siddhi.query.api.definition.Attribute;
 import org.wso2.siddhi.query.api.definition.StreamDefinition;
@@ -53,12 +54,12 @@ import java.util.Map;
  */
 @Extension(
         name = "xml",
-        namespace = "inputmapper",
+        namespace = "sourcemapper",
         description = "XML to Event input mapper"
 )
-public class XmlInputMapper extends InputMapper {
+public class XmlSourceMapper extends SourceMapper {
 
-    private static final Logger log = Logger.getLogger(XmlInputMapper.class);
+    private static final Logger log = Logger.getLogger(XmlSourceMapper.class);
     private static final String PARENT_SELECTOR_XPATH = "enclosing.element";
     private static final String NAMESPACES = "namespaces";
     private static final String EVENTS_PARENT_ELEMENT = "events";
@@ -81,14 +82,14 @@ public class XmlInputMapper extends InputMapper {
 
     /**
      * Initialize the mapper and the mapping configurations.
-     *
-     * @param streamDefinition     the  StreamDefinition
+     *  @param streamDefinition     the  StreamDefinition
      * @param optionHolder         mapping options
      * @param attributeMappingList list of attributes mapping
+     * @param configReader
      */
     @Override
     public void init(StreamDefinition streamDefinition, OptionHolder optionHolder, List<AttributeMapping>
-            attributeMappingList) {
+            attributeMappingList, ConfigReader configReader) {
         String enclosingElementSelectorXPath;
         this.streamDefinition = streamDefinition;
         attributeList = streamDefinition.getAttributeList();
@@ -144,7 +145,7 @@ public class XmlInputMapper extends InputMapper {
     }
 
     /**
-     * Receives an event as an XML string from {@link InputTransport}, converts it to a {@link ComplexEventChunk}
+     * Receives an event as an XML string from {@link Source}, converts it to a {@link ComplexEventChunk}
      * and send to the {@link OutputCallback}.
      *
      * @param eventObject  the input event, given as an XML string

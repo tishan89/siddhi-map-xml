@@ -31,8 +31,8 @@ import org.wso2.siddhi.core.util.transport.InMemoryBroker;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class XmlInputMapperTestCase {
-    static final Logger log = Logger.getLogger(XmlInputMapperTestCase.class);
+public class XmlSourceMapperTestCase {
+    static final Logger log = Logger.getLogger(XmlSourceMapperTestCase.class);
     private AtomicInteger count = new AtomicInteger();
 
     @Before
