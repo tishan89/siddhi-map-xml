@@ -22,8 +22,9 @@ import org.wso2.siddhi.annotation.Extension;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.exception.ConnectionUnavailableException;
 import org.wso2.siddhi.core.exception.ExecutionPlanCreationException;
-import org.wso2.siddhi.core.stream.output.sink.OutputMapper;
+import org.wso2.siddhi.core.stream.output.sink.SinkMapper;
 import org.wso2.siddhi.core.stream.output.sink.OutputTransportListener;
+import org.wso2.siddhi.core.util.config.ConfigReader;
 import org.wso2.siddhi.core.util.transport.DynamicOptions;
 import org.wso2.siddhi.core.util.transport.Option;
 import org.wso2.siddhi.core.util.transport.OptionHolder;
@@ -47,8 +48,8 @@ import java.io.IOException;
  * using a predefined XML message format. In case of null elements xsi:nil="true" will be used. In some instances
  * coding best practices have been compensated for performance concerns.
  */
-public class XMLOutputMapper extends OutputMapper {
-    private static final Logger log = Logger.getLogger(XMLOutputMapper.class);
+public class XMLSinkMapper extends SinkMapper {
+    private static final Logger log = Logger.getLogger(XMLSinkMapper.class);
 
     private static final String EVENTS_PARENT_OPENING_TAG = "<events>";
     private static final String EVENTS_PARENT_CLOSING_TAG = "</events>";
@@ -71,13 +72,13 @@ public class XMLOutputMapper extends OutputMapper {
 
     /**
      * Initialize the mapper and the mapping configurations.
-     *
-     * @param streamDefinition       The stream definition
+     *  @param streamDefinition       The stream definition
      * @param optionHolder           Option holder containing static and dynamic options
      * @param payloadTemplateBuilder Unmapped payload for reference
+     * @param mapperConfigReader
      */
     @Override
-    public void init(StreamDefinition streamDefinition, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder) {
+    public void init(StreamDefinition streamDefinition, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder, ConfigReader mapperConfigReader) {
         this.streamDefinition = streamDefinition;
         enclosingElement = optionHolder.getOrCreateOption(OPTION_ENCLOSING_ELEMENT, null).getValue();
         if (enclosingElement != null) {
