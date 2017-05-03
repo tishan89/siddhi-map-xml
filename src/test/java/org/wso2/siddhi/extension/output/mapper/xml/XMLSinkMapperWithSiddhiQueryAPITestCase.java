@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.siddhi.extension.output.mapper.xml;
 
 import org.apache.log4j.Logger;
@@ -23,17 +24,25 @@ import org.junit.Before;
 import org.junit.Test;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
-import org.wso2.siddhi.core.exception.NoSuchAttributeException;
 import org.wso2.siddhi.core.stream.input.InputHandler;
-import org.wso2.siddhi.core.stream.output.sink.InMemoryOutputTransport;
+import org.wso2.siddhi.core.stream.output.sink.InMemorySink;
 import org.wso2.siddhi.core.util.transport.InMemoryBroker;
+import org.wso2.siddhi.query.api.ExecutionPlan;
+import org.wso2.siddhi.query.api.annotation.Annotation;
+import org.wso2.siddhi.query.api.definition.Attribute;
+import org.wso2.siddhi.query.api.definition.StreamDefinition;
+import org.wso2.siddhi.query.api.execution.query.Query;
+import org.wso2.siddhi.query.api.execution.query.input.stream.InputStream;
+import org.wso2.siddhi.query.api.execution.query.selection.Selector;
+import org.wso2.siddhi.query.api.expression.Variable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class XMLOutputMapperWithSiddhiQLTestCase {
-    static final Logger log = Logger.getLogger(XMLOutputMapperWithSiddhiQLTestCase.class);
+public class XMLSinkMapperWithSiddhiQueryAPITestCase {
+
+    static final Logger log = Logger.getLogger(XMLSinkMapperWithSiddhiQueryAPITestCase.class);
     private AtomicInteger wso2Count = new AtomicInteger(0);
     private AtomicInteger ibmCount = new AtomicInteger(0);
 
@@ -48,8 +57,8 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
     //    publish inMemory options ("topic", "{{symbol}}")
     //    map xml
     @Test
-    public void testXMLOutputMapperDefaultMappingWithSiddhiQL() throws InterruptedException {
-        log.info("Test default xml mapping with SiddhiQL");
+    public void testXMLSinkmapperWithDefaultMapping() throws InterruptedException {
+        log.info("Test default xml mapping with Siddhi Query API");
         List<Object> onMessageList = new ArrayList<Object>();
 
         InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
@@ -82,20 +91,38 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.subscribe(subscriberWSO2);
         InMemoryBroker.subscribe(subscriberIBM);
 
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml')) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
+        StreamDefinition streamDefinition = StreamDefinition.id("FooStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT);
 
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
+        StreamDefinition outputDefinition = StreamDefinition.id("BarStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT)
+                .annotation(Annotation.annotation("sink")
+                        .element("type", "inMemory")
+                        .element("topic", "{{symbol}}")
+                        .annotation(Annotation.annotation("map")
+                                .element("type", "xml")));
+
+        Query query = Query.query();
+        query.from(
+                InputStream.stream("FooStream")
+        );
+        query.select(
+                Selector.selector().select(new Variable("symbol")).select(new Variable(
+                        "price")).select(new Variable("volume"))
+        );
+        query.insertInto("BarStream");
 
         SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        ExecutionPlan executionPlan = new ExecutionPlan("ep1");
+        executionPlan.defineStream(streamDefinition);
+        executionPlan.defineStream(outputDefinition);
+        executionPlan.addQuery(query);
+        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(executionPlan);
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
@@ -121,87 +148,13 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.unsubscribe(subscriberIBM);
     }
 
-    @Test
-    public void testXMLOutputMapperDefaultMappingWithNullElementSiddhiQL() throws InterruptedException {
-        log.info("Test default xml mapping with null elements");
-        List<Object> onMessageList = new ArrayList<Object>();
-
-        InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
-            @Override
-            public void onMessage(Object msg) {
-                wso2Count.incrementAndGet();
-                onMessageList.add(msg);
-            }
-
-            @Override
-            public String getTopic() {
-                return "WSO2";
-            }
-        };
-
-        InMemoryBroker.Subscriber subscriberIBM = new InMemoryBroker.Subscriber() {
-            @Override
-            public void onMessage(Object msg) {
-                ibmCount.incrementAndGet();
-                onMessageList.add(msg);
-            }
-
-            @Override
-            public String getTopic() {
-                return "IBM";
-            }
-        };
-
-        //subscribe to "inMemory" broker per topic
-        InMemoryBroker.subscribe(subscriberWSO2);
-        InMemoryBroker.subscribe(subscriberIBM);
-
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml')) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
-
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
-
-        SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
-        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
-
-        executionPlanRuntime.start();
-        stockStream.send(new Object[]{"WSO2", 55.6f, null});
-        stockStream.send(new Object[]{"IBM", 75.6f, 100L});
-        stockStream.send(new Object[]{"WSO2", 57.6f, 100L});
-        Thread.sleep(100);
-
-        //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
-        //assert default mapping
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
-                "<price>55.6</price><volume xsi:nil=\"true\"/></event></events>", onMessageList.get(0).toString());
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>IBM</symbol>" +
-                "<price>75.6</price><volume>100</volume></event></events>", onMessageList.get(1).toString());
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
-                "<price>57.6</price><volume>100</volume></event></events>", onMessageList.get(2).toString());
-        executionPlanRuntime.shutdown();
-
-        //unsubscribe from "inMemory" broker per topic
-        InMemoryBroker.unsubscribe(subscriberWSO2);
-        InMemoryBroker.unsubscribe(subscriberIBM);
-    }
-
     //    from FooStream
     //    select symbol,price
     //    publish inMemory options ("topic", "{{symbol}}")
     //    map xml custom
     @Test
-    public void testXMLOutputCustomMappingWithoutXMLPrefix() throws InterruptedException {
-        log.info("Test custom xml mapping with SiddhiQL");
+    public void testXMLSinkmapperWithCustomMapping() throws InterruptedException {
+        log.info("Test custom xml mapping with Siddhi Query API");
         List<Object> onMessageList = new ArrayList<Object>();
 
         InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
@@ -234,21 +187,41 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.subscribe(subscriberWSO2);
         InMemoryBroker.subscribe(subscriberIBM);
 
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', @payload(" +
-                "\"<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData>\"))) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
-        System.out.println(streams);
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
+        StreamDefinition streamDefinition = StreamDefinition.id("FooStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT);
+
+        StreamDefinition outputDefinition = StreamDefinition.id("BarStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT)
+                .annotation(Annotation.annotation("sink")
+                        .element("type", "inMemory")
+                        .element("topic", "{{symbol}}")
+                        .annotation(Annotation.annotation("map")
+                                .element("type", "xml")
+                                .annotation(Annotation.annotation("payload")
+                                        .element("<StockData><Symbol>{{symbol}}</Symbol><Price>" +
+                                                "{{price}}</Price></StockData>"))));
+
+        Query query = Query.query();
+        query.from(
+                InputStream.stream("FooStream")
+        );
+        query.select(
+                Selector.selector().select(new Variable("symbol")).select(new Variable(
+                        "price")).select(new Variable("volume"))
+        );
+        query.insertInto("BarStream");
 
         SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        ExecutionPlan executionPlan = new ExecutionPlan("ep1");
+        executionPlan.defineStream(streamDefinition);
+        executionPlan.defineStream(outputDefinition);
+        executionPlan.addQuery(query);
+        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(executionPlan);
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
@@ -309,22 +282,42 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.subscribe(subscriberWSO2);
         InMemoryBroker.subscribe(subscriberIBM);
 
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', " +
-                "@map(type='xml', enclosing.element='<portfolio>', " +
-                "@payload(\"<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData>\"))) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
+        StreamDefinition streamDefinition = StreamDefinition.id("FooStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT);
 
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
+        StreamDefinition outputDefinition = StreamDefinition.id("BarStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT)
+                .annotation(Annotation.annotation("sink")
+                        .element("type", "inMemory")
+                        .element("topic", "{{symbol}}")
+                        .annotation(Annotation.annotation("map")
+                                .element("type", "xml")
+                                .element("enclosing.element", "<portfolio>")
+                                .annotation(Annotation.annotation("payload")
+                                        .element("<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}" +
+                                                "</Price></StockData>"))));
+
+        Query query = Query.query();
+        query.from(
+                InputStream.stream("FooStream")
+        );
+        query.select(
+                Selector.selector().select(new Variable("symbol")).select(new Variable(
+                        "price")).select(new Variable("volume"))
+        );
+        query.insertInto("BarStream");
 
         SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        ExecutionPlan executionPlan = new ExecutionPlan("ep1");
+        executionPlan.defineStream(streamDefinition);
+        executionPlan.defineStream(outputDefinition);
+        executionPlan.addQuery(query);
+        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(executionPlan);
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
@@ -385,22 +378,43 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.subscribe(subscriberWSO2);
         InMemoryBroker.subscribe(subscriberIBM);
 
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', enclosing.element='<portfolio>', " +
-                " validateXml='true', @payload(" +
-                "\"<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData>\"))) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
+        StreamDefinition streamDefinition = StreamDefinition.id("FooStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT);
 
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
+        StreamDefinition outputDefinition = StreamDefinition.id("BarStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT)
+                .annotation(Annotation.annotation("sink")
+                        .element("type", "inMemory")
+                        .element("topic", "{{symbol}}")
+                        .annotation(Annotation.annotation("map")
+                                .element("type", "xml")
+                                .element("enclosing.element", "<portfolio>")
+                                .element("validate.xml", "true")
+                                .annotation(Annotation.annotation("payload")
+                                        .element("<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}" +
+                                                "</Price></StockData>"))));
+
+        Query query = Query.query();
+        query.from(
+                InputStream.stream("FooStream")
+        );
+        query.select(
+                Selector.selector().select(new Variable("symbol")).select(new Variable(
+                        "price")).select(new Variable("volume"))
+        );
+        query.insertInto("BarStream");
 
         SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        ExecutionPlan executionPlan = new ExecutionPlan("ep1");
+        executionPlan.defineStream(streamDefinition);
+        executionPlan.defineStream(outputDefinition);
+        executionPlan.addQuery(query);
+        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(executionPlan);
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
@@ -430,10 +444,13 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
     public void negativeTestXMLOutputCustomMappingWithXMLValidation() throws InterruptedException {
         log.info("Negative test case for testing whether events are dropped when XML validation is enabled" +
                 " and a malformed XML event is generated as a result of output mapping.");
+        List<Object> onMessageList = new ArrayList<Object>();
+
         InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
             @Override
             public void onMessage(Object msg) {
                 wso2Count.incrementAndGet();
+                onMessageList.add(msg);
             }
 
             @Override
@@ -446,6 +463,7 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
             @Override
             public void onMessage(Object msg) {
                 ibmCount.incrementAndGet();
+                onMessageList.add(msg);
             }
 
             @Override
@@ -458,22 +476,43 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         InMemoryBroker.subscribe(subscriberWSO2);
         InMemoryBroker.subscribe(subscriberIBM);
 
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', enclosing.element='<portfolio>', " +
-                "validateXml='true', @payload(" +
-                "\"<StockData data><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData data>\"))) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
+        StreamDefinition streamDefinition = StreamDefinition.id("FooStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT);
 
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
+        StreamDefinition outputDefinition = StreamDefinition.id("BarStream")
+                .attribute("symbol", Attribute.Type.STRING)
+                .attribute("price", Attribute.Type.FLOAT)
+                .attribute("volume", Attribute.Type.INT)
+                .annotation(Annotation.annotation("sink")
+                        .element("type", "inMemory")
+                        .element("topic", "{{symbol}}")
+                        .annotation(Annotation.annotation("map")
+                                .element("type", "xml")
+                                .element("enclosing.element", "<portfolio")
+                                .element("validate.xml", "true")
+                                .annotation(Annotation.annotation("payload")
+                                        .element("<StockData><Symbol>{{symbol}}</Symbol><Price>" +
+                                                "{{price}}</Price></StockData>"))));
+
+        Query query = Query.query();
+        query.from(
+                InputStream.stream("FooStream")
+        );
+        query.select(
+                Selector.selector().select(new Variable("symbol")).select(new Variable(
+                        "price")).select(new Variable("volume"))
+        );
+        query.insertInto("BarStream");
 
         SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        ExecutionPlan executionPlan = new ExecutionPlan("ep1");
+        executionPlan.defineStream(streamDefinition);
+        executionPlan.defineStream(outputDefinition);
+        executionPlan.addQuery(query);
+        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(executionPlan);
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
@@ -490,38 +529,5 @@ public class XMLOutputMapperWithSiddhiQLTestCase {
         //unsubscribe from "inMemory" broker per topic
         InMemoryBroker.unsubscribe(subscriberWSO2);
         InMemoryBroker.unsubscribe(subscriberIBM);
-    }
-
-    //    from FooStream
-    //    select symbol,price
-    //    publish inMemory options ("topic", "{{symbol}}")
-    //    map xml custom
-    @Test(expected = NoSuchAttributeException.class)
-    public void testNoSuchAttributeExceptionForXMLOutputMapping() throws InterruptedException {
-        log.info("Test for non existing attribute in xml mapping with SiddhiQL - expects NoSuchAttributeException");
-
-        String streams = "" +
-                "@Plan:name('TestExecutionPlan')" +
-                "define stream FooStream (symbol string, price float, volume long); " +
-                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', @payload(" +
-                "\"<StockData><Symbol>{{non-exist}}</Symbol><Price>{{price}}</Price></StockData>\"))) " +
-                "define stream BarStream (symbol string, price float, volume long); ";
-
-        String query = "" +
-                "from FooStream " +
-                "select * " +
-                "insert into BarStream; ";
-
-        SiddhiManager siddhiManager = new SiddhiManager();
-        siddhiManager.setExtension("outputtransport:inMemory", InMemoryOutputTransport.class);
-        ExecutionPlanRuntime executionPlanRuntime = siddhiManager.createExecutionPlanRuntime(streams + query);
-        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
-
-        executionPlanRuntime.start();
-        stockStream.send(new Object[]{"WSO2", 55.6f, 100L});
-        stockStream.send(new Object[]{"IBM", 75.6f, 100L});
-        stockStream.send(new Object[]{"WSO2", 57.6f, 100L});
-        Thread.sleep(100);
-        executionPlanRuntime.shutdown();
     }
 }

@@ -22,8 +22,9 @@ import org.wso2.siddhi.annotation.Extension;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.exception.ConnectionUnavailableException;
 import org.wso2.siddhi.core.exception.ExecutionPlanCreationException;
-import org.wso2.siddhi.core.stream.output.sink.OutputMapper;
-import org.wso2.siddhi.core.stream.output.sink.OutputTransportListener;
+import org.wso2.siddhi.core.stream.output.sink.SinkMapper;
+import org.wso2.siddhi.core.stream.output.sink.SinkListener;
+import org.wso2.siddhi.core.util.config.ConfigReader;
 import org.wso2.siddhi.core.util.transport.DynamicOptions;
 import org.wso2.siddhi.core.util.transport.Option;
 import org.wso2.siddhi.core.util.transport.OptionHolder;
@@ -39,7 +40,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 @Extension(
         name = "xml",
-        namespace = "outputmapper",
+        namespace = "sinkMapper",
         description = "Event to XML output mapper"
 )
 /**
@@ -47,15 +48,15 @@ import javax.xml.parsers.ParserConfigurationException;
  * using a predefined XML message format. In case of null elements xsi:nil="true" will be used. In some instances
  * coding best practices have been compensated for performance concerns.
  */
-public class XMLOutputMapper extends OutputMapper {
-    private static final Logger log = Logger.getLogger(XMLOutputMapper.class);
+public class XMLSinkMapper extends SinkMapper {
+    private static final Logger log = Logger.getLogger(XMLSinkMapper.class);
 
     private static final String EVENTS_PARENT_OPENING_TAG = "<events>";
     private static final String EVENTS_PARENT_CLOSING_TAG = "</events>";
     private static final String EVENT_PARENT_OPENING_TAG = "<event>";
     private static final String EVENT_PARENT_CLOSING_TAG = "</event>";
     private static final String OPTION_ENCLOSING_ELEMENT = "enclosing.element";
-    private static final String OPTION_VALIDATE_XML = "validateXml";
+    private static final String OPTION_VALIDATE_XML = "validate.xml";
     private static final String NS_XSI_NIL_ENABLE = " xsi:nil=\"true\"/";
 
     private StreamDefinition streamDefinition;
@@ -71,14 +72,14 @@ public class XMLOutputMapper extends OutputMapper {
 
     /**
      * Initialize the mapper and the mapping configurations.
-     *
-     * @param streamDefinition       The stream definition
+     *  @param streamDefinition       The stream definition
      * @param optionHolder           Option holder containing static and dynamic options
      * @param payloadTemplateBuilder Unmapped payload for reference
+     * @param mapperConfigReader
      */
     @Override
     public void init(StreamDefinition streamDefinition, OptionHolder optionHolder, TemplateBuilder
-            payloadTemplateBuilder) {
+            payloadTemplateBuilder, ConfigReader mapperConfigReader) {
         this.streamDefinition = streamDefinition;
         enclosingElement = optionHolder.getOrCreateOption(OPTION_ENCLOSING_ELEMENT, null).getValue();
         if (enclosingElement != null) {
@@ -103,7 +104,7 @@ public class XMLOutputMapper extends OutputMapper {
 
     @Override
     public void mapAndSend(Event event, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder,
-                           OutputTransportListener outputTransportListener, DynamicOptions dynamicOptions)
+                           SinkListener sinkListener, DynamicOptions dynamicOptions)
             throws ConnectionUnavailableException {
         StringBuilder sb = new StringBuilder();
         if (payloadTemplateBuilder != null) {   //custom mapping
@@ -137,7 +138,7 @@ public class XMLOutputMapper extends OutputMapper {
                 sb.append(EVENTS_PARENT_CLOSING_TAG);
             }
         }
-        outputTransportListener.publish(sb.toString(), dynamicOptions);
+        sinkListener.publish(sb.toString(), dynamicOptions);
     }
 
     /**
@@ -146,11 +147,11 @@ public class XMLOutputMapper extends OutputMapper {
      * @param events                  Event object array
      * @param optionHolder            option holder containing static and dynamic options
      * @param payloadTemplateBuilder  Unmapped payload for reference
-     * @param outputTransportListener output transport callback
+     * @param sinkListener output transport callback
      */
     @Override
     public void mapAndSend(Event[] events, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder,
-                           OutputTransportListener outputTransportListener, DynamicOptions dynamicOptions)
+                           SinkListener sinkListener, DynamicOptions dynamicOptions)
             throws ConnectionUnavailableException {
         if (events.length < 1) {        //todo valid case?
             return;
@@ -187,7 +188,7 @@ public class XMLOutputMapper extends OutputMapper {
                 sb.append(EVENTS_PARENT_CLOSING_TAG);
             }
         }
-        outputTransportListener.publish(sb.toString(), dynamicOptions);
+        sinkListener.publish(sb.toString(), dynamicOptions);
     }
 
     /**
