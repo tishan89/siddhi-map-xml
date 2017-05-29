@@ -4,5 +4,5 @@ This repository contains source code for siddhi XML mapper extensions. XML mappe
 
 References
 
-https://docs.wso2.com/display/DAS400/XML+Input+Mapping
+https://docs.wso2.com/display/DAS400/XML+Input+Mapping</br>
 https://docs.wso2.com/display/DAS400/XML+Output+Mapping
