@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.siddhi.extension.output.mapper.xml;
+package org.wso2.extension.siddhi.map.xml.output;
 
 import org.apache.log4j.Logger;
 import org.junit.Assert;

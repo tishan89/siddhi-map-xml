@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.siddhi.extension.input.mapper.xml;
+package org.wso2.extension.siddhi.map.xml.input;
 
 import org.apache.axiom.om.DeferredParsingException;
 import org.apache.axiom.om.OMAttribute;
