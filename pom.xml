@@ -27,14 +27,14 @@
     <packaging>pom</packaging>
 
     <groupId>org.wso2.siddhi</groupId>
-    <artifactId>siddhi-map-xml-extensions</artifactId>
+    <artifactId>siddhi-map-xml</artifactId>
     <version>4.0.0-M5-SNAPSHOT</version>
     <name>Siddhi XML Map Extensions</name>
 
     <modules>       
         <module>components/input-mapper</module>
 	    <module>components/output-mapper</module>
-	    <module>features/org.wso2.siddhi.extension.mapper.xml</module>
+	    <module>features/org.wso2.extension.siddhi.map.xml</module>
     </modules>
 
     <dependencyManagement>
