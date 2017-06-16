@@ -78,12 +78,6 @@
                     <version>${axiom.version}</version>
                 </dependency>
                 <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <scope>test</scope>
-                    <version>${junit.version}</version>
-                </dependency>
-                <dependency>
                     <groupId>org.apache.james</groupId>
                     <artifactId>apache-mime4j-core</artifactId>
                     <version>${mime4j.version}</version>

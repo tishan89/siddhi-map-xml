@@ -19,9 +19,9 @@
 package org.wso2.extension.siddhi.map.xml.sinkmapper;
 
 import org.apache.log4j.Logger;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.stream.input.InputHandler;
@@ -46,7 +46,7 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
     private AtomicInteger wso2Count = new AtomicInteger(0);
     private AtomicInteger ibmCount = new AtomicInteger(0);
 
-    @Before
+    @BeforeMethod
     public void init() {
         wso2Count.set(0);
         ibmCount.set(0);
@@ -132,14 +132,14 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
         Thread.sleep(100);
 
         //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
         //assert default mapping
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
                 "<price>55.6</price><volume>100</volume></event></events>", onMessageList.get(0).toString());
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>IBM</symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<events><event><symbol>IBM</symbol>" +
                 "<price>75.6</price><volume>100</volume></event></events>", onMessageList.get(1).toString());
-        Assert.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<events><event><symbol>WSO2</symbol>" +
                 "<price>57.6</price><volume>100</volume></event></events>", onMessageList.get(2).toString());
         executionPlanRuntime.shutdown();
 
@@ -231,14 +231,14 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
         Thread.sleep(100);
 
         //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
         //assert custom xml
-        Assert.assertEquals("Incorrect mapping!", "<StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol>WSO2</Symbol>" +
                 "<Price>55.6</Price></StockData>", onMessageList.get(0).toString());
-        Assert.assertEquals("Incorrect mapping!", "<StockData><Symbol>IBM</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol>IBM</Symbol>" +
                 "<Price>75.6</Price></StockData>", onMessageList.get(1).toString());
-        Assert.assertEquals("Incorrect mapping!", "<StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol>WSO2</Symbol>" +
                 "<Price>57.6</Price></StockData>", onMessageList.get(2).toString());
         executionPlanRuntime.shutdown();
 
@@ -327,14 +327,14 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
         Thread.sleep(100);
 
         //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
         //assert custom xml
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
                 "<Price>55.6</Price></StockData></portfolio>", onMessageList.get(0).toString());
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>IBM</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>IBM</Symbol>" +
                 "<Price>75.6</Price></StockData></portfolio>", onMessageList.get(1).toString());
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
                 "<Price>57.6</Price></StockData></portfolio>", onMessageList.get(2).toString());
         executionPlanRuntime.shutdown();
 
@@ -424,14 +424,14 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
         Thread.sleep(100);
 
         //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
         //assert custom xml
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
                 "<Price>55.6</Price></StockData></portfolio>", onMessageList.get(0).toString());
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>IBM</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>IBM</Symbol>" +
                 "<Price>75.6</Price></StockData></portfolio>", onMessageList.get(1).toString());
-        Assert.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
+        AssertJUnit.assertEquals("Incorrect mapping!", "<portfolio><StockData><Symbol>WSO2</Symbol>" +
                 "<Price>57.6</Price></StockData></portfolio>", onMessageList.get(2).toString());
         executionPlanRuntime.shutdown();
 
@@ -522,8 +522,8 @@ public class XMLSinkMapperWithSiddhiQueryAPITestCase {
         Thread.sleep(100);
 
         //assert event count
-        Assert.assertEquals("Incorrect number of events consumed!", 0, wso2Count.get());
-        Assert.assertEquals("Incorrect number of events consumed!", 0, ibmCount.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 0, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 0, ibmCount.get());
         executionPlanRuntime.shutdown();
 
         //unsubscribe from "inMemory" broker per topic

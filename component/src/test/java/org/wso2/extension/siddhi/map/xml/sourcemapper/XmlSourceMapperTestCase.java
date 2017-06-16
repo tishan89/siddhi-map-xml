@@ -19,9 +19,9 @@
 package org.wso2.extension.siddhi.map.xml.sourcemapper;
 
 import org.apache.log4j.Logger;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.wso2.siddhi.core.ExecutionPlanRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.event.Event;
@@ -36,7 +36,7 @@ public class XmlSourceMapperTestCase {
     private static final Logger log = Logger.getLogger(XmlSourceMapperTestCase.class);
     private AtomicInteger count = new AtomicInteger();
 
-    @Before
+    @BeforeMethod
     public void init() {
         count.set(0);
     }
@@ -112,7 +112,7 @@ public class XmlSourceMapperTestCase {
                 "<volume>10.6</volume></event></events>");
 
         //assert event count
-        Assert.assertEquals("Number of events", 3, count.get());
+        AssertJUnit.assertEquals("Number of events", 3, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -161,7 +161,7 @@ public class XmlSourceMapperTestCase {
                 "<volume>10</volume></event111></events>");
 
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -210,7 +210,7 @@ public class XmlSourceMapperTestCase {
 
 
         //assert event count
-        Assert.assertEquals("Number of events", 0, count.get());
+        AssertJUnit.assertEquals("Number of events", 0, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -312,7 +312,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 4, count.get());
+        AssertJUnit.assertEquals("Number of events", 4, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -380,7 +380,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -453,7 +453,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -506,7 +506,7 @@ public class XmlSourceMapperTestCase {
                 "<volume>10</volume></event></events>");
 
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -564,7 +564,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 1, count.get());
+        AssertJUnit.assertEquals("Number of events", 1, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -625,7 +625,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 0, count.get());
+        AssertJUnit.assertEquals("Number of events", 0, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -680,7 +680,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 0, count.get());
+        AssertJUnit.assertEquals("Number of events", 0, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -735,12 +735,12 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 0, count.get());
+        AssertJUnit.assertEquals("Number of events", 0, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
 
-    @Test(expected = ExecutionPlanValidationException.class)
+    @Test(expectedExceptions = ExecutionPlanValidationException.class)
     public void testXmlInputMappingCustom9() throws InterruptedException {
         log.info("Verify xml message being dropped due to non existence stream attributes");
 
@@ -836,7 +836,7 @@ public class XmlSourceMapperTestCase {
                 "  </stock>" +
                 "</portfolio>");
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
@@ -901,7 +901,7 @@ public class XmlSourceMapperTestCase {
                 "</portfolio>" +
                 "</root>");
         //assert event count
-        Assert.assertEquals("Number of events", 2, count.get());
+        AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
     }
