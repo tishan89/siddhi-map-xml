@@ -79,7 +79,7 @@ import javax.xml.stream.XMLStreamException;
                                            + "with respect to "
                                            + "root element.",
                            type = {DataType.STRING}),
-                @Parameter(name = "fail.on.unknown.attribute",
+                @Parameter(name = "fail.on.missing.attribute",
                            description = "This can either have value true or false. By default it will be true. This "
                                    + "attribute allows user to handle unknown attributes. By default if an xpath "
                                    + "execution "
@@ -127,7 +127,7 @@ public class XmlSourceMapper extends SourceMapper {
     private static final String NAMESPACES = "namespaces";
     private static final String EVENTS_PARENT_ELEMENT = "events";
     private static final String EVENT_ELEMENT = "event";
-    private static final String FAIL_ON_UNKNOWN_ATTRIBUTE = "fail.on.unknown.attribute";
+    private static final String FAIL_ON_UNKNOWN_ATTRIBUTE = "fail.on.missing.attribute";
 
     /**
      * Indicates whether custom mapping is enabled or not.

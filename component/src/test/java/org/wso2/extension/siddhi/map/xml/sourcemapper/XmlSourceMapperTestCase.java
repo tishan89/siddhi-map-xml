@@ -782,12 +782,12 @@ public class XmlSourceMapperTestCase {
 
     @Test
     public void testXmlInputMappingCustom10() throws InterruptedException {
-        log.info("Verify xml mapping when elements defined are non existent and fail.on.unknown.attribute is false");
+        log.info("Verify xml mapping when elements defined are non existent and fail.on.missing.attribute is false");
 
         String streams = "" +
                 "@App:name('TestSiddhiApp')" +
                 "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
-                "\"dt=urn:schemas-microsoft-com:datatypes\", fail.on.unknown.attribute=\"false\"," +
+                "\"dt=urn:schemas-microsoft-com:datatypes\", fail.on.missing.attribute=\"false\"," +
                 "enclosing.element=\"//portfolio\", @attributes(symbol = \"symbol\"" +
                 "                                           , price = \"price\"" +
                 "                                           , volume = \"volume\"))) " +
