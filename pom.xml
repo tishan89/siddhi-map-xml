@@ -28,7 +28,7 @@
 
     <groupId>org.wso2.extension.siddhi.map.xml</groupId>
     <artifactId>siddhi-map-xml-parent</artifactId>
-    <version>4.0.0-M6-SNAPSHOT</version>
+    <version>4.0.0-M7-SNAPSHOT</version>
     <name>Siddhi XML Map Extensions</name>
 
     <modules>       
