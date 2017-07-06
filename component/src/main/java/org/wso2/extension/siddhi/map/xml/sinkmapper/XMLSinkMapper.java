@@ -120,7 +120,7 @@ public class XMLSinkMapper extends SinkMapper {
     }
 
     @Override public Class[] getOutputEventClasses() {
-        return new Class[0];
+        return new Class[]{String.class};
     }
 
     /**
