@@ -50,30 +50,32 @@ import javax.xml.parsers.ParserConfigurationException;
         name = "xml",
         namespace = "sinkMapper",
         description = "This mapper converts Siddhi output events to XML before they are published via transports " +
-                "that publish in XML format. Users can either send a pre-defined XML format or a custom XML message.",
+                "that publish in XML format. Users can either send a pre-defined XML format or a custom XML message "
+                + "containing event data.",
         parameters = {
                 @Parameter(name = "validate.xml",
                         description = "This parameter specifies whether the XML messages generated should be " +
                                 "validated or not. If this parameter is set to true, messages that do not adhere " +
                                 "to proper XML standards are dropped. ",
-                        type = {DataType.BOOL}),
+                        type = {DataType.BOOL},
+                           optional = true,
+                           defaultValue = "false"),
                 @Parameter(name = "enclosing.element",
                         description =
                                 "When an enclosing element is specified, the child elements (e.g., the immediate " +
                                         "child elements) of that element are considered as events. This is useful " +
                                         "when you need to send multiple events in a single XML message. When an " +
-                                        "enclosing element is not specified, the complete XML message is " +
-                                        "considered as a single event, and the XPaths are evaluated with respect " +
-                                        "to the root element.",
-                        type = {DataType.STRING})
+                                        "enclosing element is not specified, one XML message per every event will be "
+                                        + "emitted without enclosing.",
+                        type = {DataType.STRING},
+                           defaultValue = "None in custom mapping and &lt;events&gt; in default mapping")
         },
         examples = {
                 @Example(
                         syntax = "@sink(type='inMemory', topic='stock', @map(type='xml'))\n"
                                 + "define stream FooStream (symbol string, price float, volume long);\n",
                         description = "Above configuration will do a default XML input mapping which will "
-                                + "generate below "
-                                + "output"
+                                + "generate below output\n"
                                 + "<events>\n"
                                 + "    <event>\n"
                                 + "        <symbol>WSO2</symbol>\n"
@@ -86,9 +88,10 @@ import javax.xml.parsers.ParserConfigurationException;
                                 + ".element='<portfolio>', validate.xml='true', @payload( "
                                 + "\"<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData>\")))\n"
                                 + "define stream BarStream (symbol string, price float, volume long);",
-                        description = "Above configuration will perform a custom XML mapping which will "
-                                + "produce below "
-                                + "output MXL message"
+                        description = "Above configuration will perform a custom XML mapping. Inside @payload you can"
+                                + " specify the custom template that you want to send the messages out and addd "
+                                + "placeholders to places where you need to add event attributes."
+                                + "Above config will produce below output XML message\n"
                                 + "<portfolio>\n"
                                 + "    <StockData>\n"
                                 + "        <Symbol>WSO2</Symbol>\n"

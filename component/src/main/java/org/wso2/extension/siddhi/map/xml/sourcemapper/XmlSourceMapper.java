@@ -56,40 +56,38 @@ import javax.xml.stream.XMLStreamException;
 @Extension(
         name = "xml",
         namespace = "sourceMapper",
-        description = "XML to Event input mapper. Transports which accepts XML messages can utilize this extension"
-                + "to convert the incoming XML message to Siddhi event. Users can either send a pre-defined XML "
-                + "format where event conversion will happen without any configs or can use xpath to map from a "
-                + "custom XML message.",
+        description = "This mapper converts XML input to Siddhi event. Transports which accepts XML messages "
+                + "can utilize this extension to convert the incoming XML message to Siddhi event. Users can either "
+                + "send a pre-defined XML format where event conversion will happen without any configs or can use "
+                + "xpath to map from a custom XML message.",
         parameters = {
                 @Parameter(name = "namespaces",
                            description =
                                    "Used to provide namespaces used in the incoming XML message beforehand to "
-                                           + "configure "
-                                           + "xpath expressions. User can provide a comma separated list. If these "
-                                           + "are not provided "
-                                           + "xpath evaluations will fail",
-                           type = {DataType.STRING}),
+                                           + "configure xpath expressions. User can provide a comma separated list. "
+                                           + "If these are not provided xpath evaluations will fail",
+                           type = {DataType.STRING},
+                           optional = true,
+                           defaultValue = "None"),
                 @Parameter(name = "enclosing.element",
                            description =
                                    "Used to specify the enclosing element in case of sending multiple events in same "
                                            + "XML message. WSO2 DAS will treat the child element of given enclosing "
-                                           + "element as events"
-                                           + " and execute xpath expressions on child elements. If enclosing.element "
-                                           + "is not provided "
-                                           + "multiple event scenario is disregarded and xpaths will be evaluated "
-                                           + "with respect to "
-                                           + "root element.",
-                           type = {DataType.STRING}),
+                                           + "element as events and execute xpath expressions on child elements. If "
+                                           + "enclosing.element is not provided multiple event scenario is disregarded "
+                                           + "and xpaths will be evaluated with respect to root element.",
+                           type = {DataType.STRING},
+                           optional = true,
+                           defaultValue = "Root element"),
                 @Parameter(name = "fail.on.missing.attribute",
                            description = "This can either have value true or false. By default it will be true. This "
                                    + "attribute allows user to handle unknown attributes. By default if an xpath "
-                                   + "execution "
-                                   + "fails or returns null DAS will drop that message. However setting this property"
-                                   + " to "
-                                   + "false will prompt DAS to send and event with null value to Siddhi where user "
-                                   + "can handle"
-                                   + " it accordingly(ie. Assign a default value)",
-                           type = {DataType.BOOL})
+                                   + "execution fails or returns null DAS will drop that message. However setting "
+                                   + "this property to false will prompt DAS to send and event with null value to "
+                                   + "Siddhi where user can handle it accordingly(ie. Assign a default value)",
+                           type = {DataType.BOOL},
+                           optional = true,
+                           defaultValue = "True")
         },
         examples = {
                 @Example(
@@ -107,9 +105,12 @@ import javax.xml.stream.XMLStreamException;
                 @Example(
                         syntax = "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = "
                                 + "\"dt=urn:schemas-microsoft-com:datatypes\", enclosing.element=\"//portfolio\", "
-                                + "@attributes(symbol = \"company/symbol\", price = \"price\", volume = \"volume\")))",
-                        description =  "Above configuration will perform a custom XML mapping. Expected input will "
-                                + "look like below."
+                                + "@attributes(symbol = \"company/symbol\", price = \"price\", volume = \"volume\")))"
+                                + "\ndefine stream FooStream (symbol string, price float, volume long);",
+                        description =  "Above configuration will perform a custom XML mapping. In the custom "
+                                + "mapping user can add xpath expressions representing each event attribute using "
+                                + "@attribute annotation. Expected "
+                                + "input will look like below.\n"
                                 + "<portfolio xmlns:dt=\"urn:schemas-microsoft-com:datatypes\">\n"
                                 + "    <stock exchange=\"nasdaq\">\n"
                                 + "        <volume>100</volume>\n"
@@ -129,10 +130,7 @@ public class XmlSourceMapper extends SourceMapper {
     private static final String EVENTS_PARENT_ELEMENT = "events";
     private static final String EVENT_ELEMENT = "event";
     private static final String FAIL_ON_UNKNOWN_ATTRIBUTE = "fail.on.missing.attribute";
-
-    /**
-     * Indicates whether custom mapping is enabled or not.
-     */
+    //Indicates whether custom mapping is enabled or not.
     private boolean isCustomMappingEnabled = false;
     private StreamDefinition streamDefinition;
     private AXIOMXPath enclosingElementSelectorPath = null;
