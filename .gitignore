@@ -18,5 +18,10 @@
 *.tar.gz
 *.rar
 
+.idea
+siddhi-map-xml-parent.iml
+target
+component/siddhi-map-xml.iml
+
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

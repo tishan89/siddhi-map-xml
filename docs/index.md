@@ -11,3 +11,4 @@ https://docs.wso2.com/display/DAS400/XML+Output+Mapping
 
 1. <a href="./api/4.0.0-M8-SNAPSHOT">4.0.0-M8-SNAPSHOT</a>
 1. <a href="./api/4.0.0-M7-SNAPSHOT">4.0.0-M7-SNAPSHOT</a>
+1. <a href="./api/4.0.0-M9-SNAPSHOT">4.0.0-M9-SNAPSHOT</a>
