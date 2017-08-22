@@ -15,7 +15,7 @@ pages:
   - 4.0.0-M9-SNAPSHOT: api/4.0.0-M9-SNAPSHOT.md
   - 4.0.0-M8: api/4.0.0-M8.md
 - API Docs:
-  - 4.0.0-M10-SNAPSHOT: api/4.0.0-M10-SNAPSHOT.md
-  - 4.0.0-M9-SNAPSHOT: api/4.0.0-M9-SNAPSHOT.md
   - 4.0.0-M8: api/4.0.0-M8.md
+  - 4.0.0-M9-SNAPSHOT: api/4.0.0-M9-SNAPSHOT.md
+  - 4.0.0-M10-SNAPSHOT: api/4.0.0-M10-SNAPSHOT.md
 theme: material
