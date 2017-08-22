@@ -88,6 +88,7 @@
                             *;resolution:=optional
                         </Import-Package>
                         <Include-Resource>
+                            {maven-resources},
                             META-INF=target/classes/META-INF
                         </Include-Resource>
                         <DynamicImport-Package>*</DynamicImport-Package>
