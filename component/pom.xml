@@ -76,11 +76,13 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>
-                            org.apache.axiom.*,
-                            org.apache.james.*,
-                            org.jaxen.*,
-                        </Private-Package>
+                        <!--<Private-Package>-->
+<!--&lt;!&ndash;-->
+                            <!--org.apache.axiom.*,-->
+<!--&ndash;&gt;-->
+                            <!--org.apache.james.*,-->
+                            <!--org.jaxen.*,-->
+                        <!--</Private-Package>-->
                         <Export-Package>
                             org.wso2.extension.siddhi.map.xml.*
                         </Export-Package>
@@ -88,7 +90,7 @@
                             *;resolution:=optional
                         </Import-Package>
                         <Include-Resource>
-                            {maven-resources},
+                            <!--{maven-resources},-->
                             META-INF=target/classes/META-INF
                         </Include-Resource>
                         <DynamicImport-Package>*</DynamicImport-Package>
