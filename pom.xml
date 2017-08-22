@@ -149,7 +149,7 @@
         <carbon.feature.plugin.version>3.0.0</carbon.feature.plugin.version>
         <jaxen.version>1.1.6</jaxen.version>
         <mime4j.version>0.7.2</mime4j.version>
-        <xml.mapper.bundle.version>4.0.0.M5-SNAPSHOT</xml.mapper.bundle.version>
+        <xml.mapper.bundle.version>4.0.0.M10</xml.mapper.bundle.version>
 
         <mavan.findbugsplugin.exclude.file>findbugs-exclude.xml</mavan.findbugsplugin.exclude.file>
         <mavan.checkstyle.suppression.file>checkstyle-suppressions.xml</mavan.checkstyle.suppression.file>
