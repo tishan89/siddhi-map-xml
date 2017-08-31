@@ -1,6 +1,9 @@
-site_name: Siddhi-MAP-TCP
+site_name: Siddhi-MAP-XML
 extra_css:
 - stylesheets/extra.css
+extra_javascript:
+- javascripts/extra.js
+site_favicon: images/favicon.ico
 extra:
   logo: images/siddhi-logo-w.svg
   palette:
@@ -8,16 +11,7 @@ extra:
     accent: teal
 pages:
 - Welcome to WSO2 Siddhi MAP XML: index.md
-- About:
-  - License: about/license.md
-- Api:
-  - 4.0.0-M10-SNAPSHOT: api/4.0.0-M10-SNAPSHOT.md
-  - 4.0.0-M9-SNAPSHOT: api/4.0.0-M9-SNAPSHOT.md
-  - 4.0.0-M8: api/4.0.0-M8.md
+- API Docs: null
 - API Docs:
-  - 4.0.0-M10-SNAPSHOT: api/4.0.0-M10-SNAPSHOT.md
-  - 4.0.0-M10: api/4.0.0-M10.md
   - 4.0.0-M11-SNAPSHOT: api/4.0.0-M11-SNAPSHOT.md
-  - 4.0.0-M8: api/4.0.0-M8.md
-  - 4.0.0-M9-SNAPSHOT: api/4.0.0-M9-SNAPSHOT.md
 theme: material

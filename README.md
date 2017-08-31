@@ -1,7 +1,7 @@
 # siddhi-map-xml
 
-**siddhi-map-xml** is an extension to <a target="_blank" href="https://wso2.github.io/siddhi">Siddhi</a> which 
-is used to convert XML message to/from Siddhi events. This repository can be independently released from Siddhi.
+The **siddhi-map-xml extension** is an extension to <a target="_blank" href="https://wso2.github
+.io/siddhi">Siddhi</a> that provides the functionality to convert canonical events of the server in the WSO2Event format to any xml message format and convert events of any xml format to the server's canonical event format (WSO2Event) for processing.
 
 Find some useful links below:
 
@@ -34,6 +34,7 @@ Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/si
 ```
 
 ## Jenkins Build Status
+
 ---
 
 |  Branch | Build Status |
@@ -50,11 +51,12 @@ Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/si
 ## How to Contribute
  
   * Please report issues at <a target="_blank" href="https://github.com/wso2-extensions/siddhi-map-xml/issues">GitHub Issue Tracker</a>.
-  * Send your bug fixes pull requests to <a target="_blank" href="https://github.com/wso2-extensions/siddhi-map-xml/tree/master">master branch</a>. 
+  
+  * Send your contributions as pull requests to <a target="_blank" href="https://github.com/wso2-extensions/siddhi-map-xml/tree/master">master branch</a>. 
  
 ## Contact us 
 
- * Post your questions on <a target="_blank" href="http://stackoverflow.com/">Stackoverflow</a> with the tag <a target="_blank" href="http://stackoverflow.com/search?q=siddhi">"siddhi"</a>. 
+ * Post your questions with the <a target="_blank" href="http://stackoverflow.com/search?q=siddhi">"Siddhi"</a> tag in <a target="_blank" href="http://stackoverflow.com/search?q=siddhi">Stackoverflow</a>. 
  
  * Siddhi developers can be contacted via the mailing lists:
  
@@ -67,4 +69,3 @@ Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/si
 * We are committed to ensuring support for this extension in production. Our unique approach ensures that all support leverages our open development methodology and is provided by the very same engineers who build the technology. 
 
 * For more details and to take advantage of this unique opportunity contact us via <a target="_blank" href="http://wso2.com/support?utm_source=gitanalytics&utm_campaign=gitanalytics_Jul17">http://wso2.com/support/</a>. 
-
