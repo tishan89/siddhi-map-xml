@@ -37,6 +37,7 @@ import org.xml.sax.SAXException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -58,8 +59,8 @@ import javax.xml.parsers.ParserConfigurationException;
                                 "validated or not. If this parameter is set to true, messages that do not adhere " +
                                 "to proper XML standards are dropped. ",
                         type = {DataType.BOOL},
-                           optional = true,
-                           defaultValue = "false"),
+                        optional = true,
+                        defaultValue = "false"),
                 @Parameter(name = "enclosing.element",
                         description =
                                 "When an enclosing element is specified, the child elements (e.g., the immediate " +
@@ -68,7 +69,7 @@ import javax.xml.parsers.ParserConfigurationException;
                                         "enclosing element is not specified, one XML message per every event will be "
                                         + "emitted without enclosing.",
                         type = {DataType.STRING},
-                           defaultValue = "None in custom mapping and &lt;events&gt; in default mapping")
+                        defaultValue = "None in custom mapping and &lt;events&gt; in default mapping")
         },
         examples = {
                 @Example(
@@ -122,22 +123,23 @@ public class XMLSinkMapper extends SinkMapper {
         return new String[0];
     }
 
-    @Override public Class[] getOutputEventClasses() {
+    @Override
+    public Class[] getOutputEventClasses() {
         return new Class[]{String.class};
     }
 
     /**
      * Initialize the mapper and the mapping configurations.
      *
-     * @param streamDefinition       The stream definition
-     * @param optionHolder           Option holder containing static and dynamic options
-     * @param payloadTemplateBuilder Unmapped payload for reference
-     * @param mapperConfigReader     Reader to get mapper related configurations provided by user
-     * @param siddhiAppContext       Context object of Siddhi application
+     * @param streamDefinition          The stream definition
+     * @param optionHolder              Option holder containing static and dynamic options
+     * @param payloadTemplateBuilderMap Unmapped list of payload for reference
+     * @param mapperConfigReader        Reader to get mapper related configurations provided by user
+     * @param siddhiAppContext          Context object of Siddhi application
      */
     @Override
     public void init(StreamDefinition streamDefinition, OptionHolder optionHolder,
-                     TemplateBuilder payloadTemplateBuilder, ConfigReader mapperConfigReader,
+                     Map<String, TemplateBuilder> payloadTemplateBuilderMap, ConfigReader mapperConfigReader,
                      SiddhiAppContext siddhiAppContext) {
         this.streamDefinition = streamDefinition;
         enclosingElement = optionHolder.getOrCreateOption(OPTION_ENCLOSING_ELEMENT, null).getValue();
@@ -159,17 +161,28 @@ public class XMLSinkMapper extends SinkMapper {
                 }
             }
         }
+
+        //if @payload() is added there must be at least 1 element in it, otherwise a SiddhiParserException raised
+        if (payloadTemplateBuilderMap != null && payloadTemplateBuilderMap.size() != 1) {
+            throw new SiddhiAppCreationException("Xml sink-mapper does not support multiple @payload mappings, " +
+                    "error at the mapper of '" + streamDefinition.getId() + "'");
+        }
+        if (payloadTemplateBuilderMap != null &&
+                payloadTemplateBuilderMap.get(payloadTemplateBuilderMap.keySet().iterator().next()).isObjectMessage()) {
+            throw new SiddhiAppCreationException("Xml sink-mapper does not support object @payload mappings, " +
+                    "error at the mapper of '" + streamDefinition.getId() + "'");
+        }
     }
 
     @Override
-    public void mapAndSend(Event event, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder,
-                                       SinkListener sinkListener) {
+    public void mapAndSend(Event event, OptionHolder optionHolder,
+                           Map<String, TemplateBuilder> payloadTemplateBuilderMap, SinkListener sinkListener) {
         StringBuilder sb = new StringBuilder();
-        if (payloadTemplateBuilder != null) {   //custom mapping
+        if (payloadTemplateBuilderMap != null) {   //custom mapping
             if (enclosingElement != null) {
                 sb.append(enclosingElement);
             }
-            sb.append(payloadTemplateBuilder.build(event));
+            sb.append(payloadTemplateBuilderMap.get(payloadTemplateBuilderMap.keySet().iterator().next()).build(event));
             sb.append(endingElement);
             if (xmlValidationEnabled) {
                 try {
@@ -202,24 +215,25 @@ public class XMLSinkMapper extends SinkMapper {
     /**
      * Map and publish the given {@link Event} array
      *
-     * @param events                 Event object array
-     * @param optionHolder           option holder containing static and dynamic options
-     * @param payloadTemplateBuilder Unmapped payload for reference
-     * @param sinkListener           output transport callback
+     * @param events                    Event object array
+     * @param optionHolder              option holder containing static and dynamic options
+     * @param payloadTemplateBuilderMap Unmapped payload for reference
+     * @param sinkListener              output transport callback
      */
     @Override
-    public void mapAndSend(Event[] events, OptionHolder optionHolder, TemplateBuilder payloadTemplateBuilder,
-                           SinkListener sinkListener) {
+    public void mapAndSend(Event[] events, OptionHolder optionHolder,
+                           Map<String, TemplateBuilder> payloadTemplateBuilderMap, SinkListener sinkListener) {
         if (events.length < 1) {        //todo valid case?
             return;
         }
         StringBuilder sb = new StringBuilder();
-        if (payloadTemplateBuilder != null) {   //custom mapping
+        if (payloadTemplateBuilderMap != null) {   //custom mapping
             if (enclosingElement != null) {
                 sb.append(enclosingElement);
             }
             for (Event event : events) {
-                sb.append(payloadTemplateBuilder.build(event));
+                sb.append(payloadTemplateBuilderMap.get(payloadTemplateBuilderMap.keySet().iterator().next()).
+                        build(event));
             }
             sb.append(endingElement);
             if (xmlValidationEnabled) {
