@@ -12,7 +12,7 @@ Find some useful links below:
 
 ## Latest API Docs 
 
-Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/siddhi-map-xml/api/4.0.1-SNAPSHOT">4.0.1-SNAPSHOT</a>.
+Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/siddhi-map-xml/api/4.0.2">4.0.2</a>.
 
 ## How to use 
 
@@ -46,8 +46,6 @@ Latest API Docs is <a target="_blank" href="https://wso2-extensions.github.io/si
 
 ## Features
 
-* <a target="_blank" href="https://wso2-extensions.github.io/siddhi-map-xml/api/4.0.1-SNAPSHOT/#xml-source-mapper">xml</a> *(<a target="_blank" href="https://wso2.github.io/siddhi/documentation/siddhi-4.0/#source-mappers">Source Mapper</a>)*<br><div style="padding-left: 1em;"><p>This mapper converts XML input to Siddhi event. Transports which accepts XML messages can utilize this extension to convert the incoming XML message to Siddhi event. Users can either send a pre-defined XML format where event conversion will happen without any configs or can use xpath to map from a custom XML message.</p></div>
-* <a target="_blank" href="https://wso2-extensions.github.io/siddhi-map-xml/api/4.0.1-SNAPSHOT/#xml-sink-mapper">xml</a> *(<a target="_blank" href="https://wso2.github.io/siddhi/documentation/siddhi-4.0/#sink-mappers">Sink Mapper</a>)*<br><div style="padding-left: 1em;"><p>This mapper converts Siddhi output events to XML before they are published via transports that publish in XML format. Users can either send a pre-defined XML format or a custom XML message containing event data.</p></div>
 
 ## How to Contribute
  
