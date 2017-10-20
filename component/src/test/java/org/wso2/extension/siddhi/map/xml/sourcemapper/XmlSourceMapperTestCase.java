@@ -26,6 +26,7 @@ import org.wso2.siddhi.core.SiddhiAppRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.exception.SiddhiAppCreationException;
+import org.wso2.siddhi.core.exception.SiddhiAppRuntimeException;
 import org.wso2.siddhi.core.stream.output.StreamCallback;
 import org.wso2.siddhi.core.util.EventPrinter;
 import org.wso2.siddhi.core.util.transport.InMemoryBroker;
@@ -33,7 +34,7 @@ import org.wso2.siddhi.core.util.transport.InMemoryBroker;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class XmlSourceMapperTestCase {
-    private static final Logger log = Logger.getLogger(XmlSourceMapperTestCase.class);
+    private static Logger log = Logger.getLogger(XmlSourceMapperTestCase.class);
     private AtomicInteger count = new AtomicInteger();
 
     @BeforeMethod
@@ -904,5 +905,193 @@ public class XmlSourceMapperTestCase {
         AssertJUnit.assertEquals("Number of events", 2, count.get());
         executionPlanRuntime.shutdown();
         siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXmlInputMappingCustom12() throws InterruptedException {
+        log.info("Check incoming XML event");
+        log = Logger.getLogger(XmlSourceMapper.class);
+        UnitTestAppender appender = new UnitTestAppender();
+        log.addAppender(appender);
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
+                "\"dt=urn:schemas-microsoft-com:datatypes\", " +
+                "enclosing.element=\"//portfolio\", @attributes(symbol = \"symbol\"" +
+                "                                           , price = \"price\"" +
+                "                                           , volume = \"volume\"))) " +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        executionPlanRuntime.start();
+        InMemoryBroker.publish("stock", "");
+        //assert event count
+        AssertJUnit.assertTrue(appender.getMessages().contains("Hence dropping message chunk"));
+        executionPlanRuntime.shutdown();
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXmlInputMappingCustom13() throws InterruptedException {
+        log.info("Test case for name space format.");
+        log = Logger.getLogger(XmlSourceMapper.class);
+        UnitTestAppender appender = new UnitTestAppender();
+        log.addAppender(appender);
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
+                "\"dt=urn:schemas-microsoft-=com:datatypes\", " +
+                "enclosing.element=\"//portfolio\", @attributes(symbol = \"symbol\"" +
+                "                                           , price = \"price\"" +
+                "                                           , volume = \"volume\"))) " +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+
+        executionPlanRuntime.addCallback("BarStream", new StreamCallback() {
+            @Override
+            public void receive(Event[] events) {
+                EventPrinter.print(events);
+                for (Event event : events) {
+                    switch (count.incrementAndGet()) {
+                    case 1:
+                        org.junit.Assert.assertEquals(55.6f, event.getData(1));
+                        break;
+                    default:
+                        org.junit.Assert.fail();
+                    }
+                }
+            }
+        });
+        executionPlanRuntime.start();
+        InMemoryBroker.publish("stock", "<?xml version=\"1.0\"?>" +
+                "<portfolio xmlns:dt=\"urn:schemas-microsoft-com:datatypes\">" +
+                "  <stock exchange=\"nasdaq\">" +
+                "    <volume>100</volume>" +
+                "    <symbol>WSO2</symbol>" +
+                "    <price dt:dt=\"number\">55.6</price>" +
+                "  </stock>" +
+                "</portfolio>");
+        //assert event count
+        AssertJUnit.assertTrue(appender.getMessages().contains("Each namespace has to have format"));
+        executionPlanRuntime.shutdown();
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXmlInputMappingCustom15() throws InterruptedException {
+        log.info("Test case for If elementObj instanceof OMElement and element.getFirstElement() "
+                + "!= null then check attribute's type not String .");
+        log = Logger.getLogger(XmlSourceMapper.class);
+        UnitTestAppender appender = new UnitTestAppender();
+        log.addAppender(appender);
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
+                "\"dt=urn:schemas-microsoftcom:datatypes\", " +
+                "enclosing.element=\"//portfolio\", @attributes(symbol = \"symbol\"" +
+                "                                           , price = \"price\"" +
+                "                                           , volume = \"volume\"))) " +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+
+        executionPlanRuntime.start();
+        InMemoryBroker.publish("stock", "<?xml version=\"1.0\"?>" +
+                "<portfolio xmlns:dt=\"urn:schemas-microsoft-com:datatypes\">" +
+                "  <stock exchange=\"nasdaq\">" +
+                "    <symbol><symbol>WSO2</symbol></symbol>" +
+                "    <price><price>55.6</price></price>" +
+                "     <volume>100</volume>" +
+                "  </stock>" +
+                "</portfolio>");
+        //assert event count
+        executionPlanRuntime.shutdown();
+        AssertJUnit.assertTrue(appender.getMessages().contains("a leaf element and stream definition is"
+                + " not expecting a String attribute"));
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXmlInputMappingCustomForEvents() throws InterruptedException {
+        log.info("Test case for if elementObj instanceof OMAttribute but some problem occurred during convert data.");
+        log = Logger.getLogger(XmlSourceMapper.class);
+        UnitTestAppender appender = new UnitTestAppender();
+        log.addAppender(appender);
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
+                "\"dt=urn:schemas-microsoft-com:datatypes\", " +
+                "enclosing.element=\"//portfolio\", @attributes(symbol = \"symbol/@exchange\"" +
+                "                                           , price = \"price/@priceAttr\"" +
+                "                                           , volume = \"volume/@volAttr\"))) " +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+
+        executionPlanRuntime.start();
+        InMemoryBroker.publish("stock", "<?xml version=\"1.0\"?>" +
+                "<portfolio xmlns:dt=\"urn:schemas-microsoft-com:datatypes\">" +
+                "  <stock exchange=\"nasdaq\">" +
+                "    <volume volAttr=\"108\">100</volume>" +
+                "    <symbol exchange=\"null\">WSO2</symbol>" +
+                "    <price priceAttr=\"\">55.6</price>" +
+                "  </stock>" +
+                "</portfolio>");
+        //assert event count
+        AssertJUnit.assertTrue(appender.getMessages().contains("Error occurred when extracting attribute value"));
+        executionPlanRuntime.shutdown();
+        siddhiManager.shutdown();
+    }
+
+    @Test(expectedExceptions = SiddhiAppRuntimeException.class)
+    public void testXmlInputMappingCustom123() throws InterruptedException {
+        log.info("Test case for enclosing Element XPath.");
+
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "@source(type='inMemory', topic='stock', @map(type='xml', namespaces = " +
+                "\"dt=urn:schemas-microsoft-com:datatypes,at=urn:schemas-microsoft-com:datatypes\", " +
+                "enclosing.element=\"//12\", @attributes(symbol = \"symbol\"" +
+                "                                           , price = \"price\"" +
+                "                                           , volume = \"volume\"))) " +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.createSiddhiAppRuntime(streams + query);
     }
 }
