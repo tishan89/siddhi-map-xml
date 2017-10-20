@@ -12,6 +12,7 @@ extra:
 pages:
 - Welcome to WSO2 Siddhi MAP XML: index.md
 - API Docs:
+  - 4.0.3: api/4.0.3.md
   - 4.0.2: api/4.0.2.md
   - latest: api/latest.md
 - License: license.md
