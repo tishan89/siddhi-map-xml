@@ -25,6 +25,7 @@ import org.wso2.siddhi.core.SiddhiAppRuntime;
 import org.wso2.siddhi.core.SiddhiManager;
 import org.wso2.siddhi.core.event.Event;
 import org.wso2.siddhi.core.exception.NoSuchAttributeException;
+import org.wso2.siddhi.core.exception.SiddhiAppCreationException;
 import org.wso2.siddhi.core.stream.input.InputHandler;
 import org.wso2.siddhi.core.stream.output.sink.InMemorySink;
 import org.wso2.siddhi.core.util.transport.InMemoryBroker;
@@ -165,9 +166,9 @@ public class XMLSinkMapperWithSiddhiQLTestCase {
         InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
 
         executionPlanRuntime.start();
-        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{"WSO2#@$", 55.6f, 100L});
-        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{"IBM", 75.6f, 100L});
-        stockStream.send(new Event[]{wso2Event, ibmEvent});
+        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{ "WSO2#@$", 55.6f, 100L});
+        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{ "IBM", 75.6f, 100L});
+        stockStream.send(new Event[]{ wso2Event, ibmEvent});
         stockStream.send(new Object[]{null, null, 100L});
         Thread.sleep(100);
 
@@ -872,6 +873,351 @@ public class XMLSinkMapperWithSiddhiQLTestCase {
         stockStream.send(new Object[]{"WSO2", 57.6f, 100L});
         Thread.sleep(100);
         executionPlanRuntime.shutdown();
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXMLSinkmapperCustomtMappingForEventWithSiddhiQL() throws InterruptedException {
+        log.info("Test custom xml mapping with SiddhiQL for multiple events");
+        AtomicInteger companyCount = new AtomicInteger(0);
+        List<Object> onMessageList = new ArrayList<Object>();
+
+        InMemoryBroker.Subscriber subscriberCompany = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                companyCount.incrementAndGet();
+                onMessageList.add(msg);
+            }
+
+            @Override
+            public String getTopic() {
+                return "company";
+            }
+        };
+
+        //subscribe to "inMemory" broker per topic
+        InMemoryBroker.subscribe(subscriberCompany);
+
+        String streams = "" +
+                "@App:name('TestExecutionPlan')" +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "@sink(type='inMemory', topic='company', @map(type='xml', " +
+                "enclosing.element=\"<portfolio xmlns:dt='urn:schemas-microsoft-com:datatypes>\", " +
+                "@payload(\"<dt:StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></dt:StockData>\"))) " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
+
+        executionPlanRuntime.start();
+        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{ "WSO2#@$", 55.6f, 100L});
+        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{ "IBM", 75.6f, 100L});
+        stockStream.send(new Event[]{ wso2Event, ibmEvent});
+        Thread.sleep(100);
+
+        //assert event count
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, companyCount.get());
+        //assert default mapping
+        AssertJUnit.assertEquals("Incorrect mapping!",
+                "<portfolio xmlns:dt='urn:schemas-microsoft-com:datatypes>" +
+                "<dt:StockData><Symbol>WSO2#@$</Symbol><Price>55.6</Price></dt:StockData>" +
+                        "<dt:StockData><Symbol>IBM</Symbol><Price>75.6</Price></dt:StockData></portfolio>",
+                onMessageList.get(0).toString());
+        executionPlanRuntime.shutdown();
+
+        //unsubscribe from "inMemory" broker per topic
+        InMemoryBroker.unsubscribe(subscriberCompany);
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXMLSinkmapperDefaultMappingForEventsWithSiddhiQL() throws InterruptedException {
+        log.info("Test default xml mapping with SiddhiQL for multiple events");
+        AtomicInteger companyCount = new AtomicInteger(0);
+        List<Object> onMessageList = new ArrayList<Object>();
+
+        InMemoryBroker.Subscriber subscriberCompany = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                companyCount.incrementAndGet();
+                onMessageList.add(msg);
+            }
+
+            @Override
+            public String getTopic() {
+                return "company";
+            }
+        };
+
+        //subscribe to "inMemory" broker per topic
+        InMemoryBroker.subscribe(subscriberCompany);
+
+        String streams = "" +
+                "@App:name('TestExecutionPlan')" +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "@sink(type='inMemory', topic='company', @map(type='xml', " +
+                "enclosing.element=\"<portfolio xmlns:dt='urn:schemas-microsoft-com:datatypes>\"))" +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
+
+        executionPlanRuntime.start();
+        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{ "WSO2#@$", 55.6f, 100L});
+        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{ "IBM", 75.6f, 100L});
+        stockStream.send(new Event[]{ wso2Event, ibmEvent});
+        Thread.sleep(100);
+
+        //assert event count
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, companyCount.get());
+        //assert default mapping
+        AssertJUnit.assertEquals("Incorrect mapping!",
+                "<portfolio xmlns:dt='urn:schemas-microsoft-com:datatypes>" +
+                        "<event><symbol>WSO2#@$</symbol><price>55.6</price><volume>100</volume></event>" +
+                        "<event><symbol>IBM</symbol><price>75.6</price><volume>100</volume></event></portfolio>",
+                onMessageList.get(0).toString());
+        executionPlanRuntime.shutdown();
+
+        //unsubscribe from "inMemory" broker per topic
+        InMemoryBroker.unsubscribe(subscriberCompany);
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void testXMLSinkmapperCustomtMappingWithValidationForMultiple() throws InterruptedException {
+        log.info("Test custom xml mapping Validation with SiddhiQL for multiple events");
+        AtomicInteger companyCount = new AtomicInteger(0);
+        List<Object> onMessageList = new ArrayList<Object>();
+
+        InMemoryBroker.Subscriber subscriberCompany = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                companyCount.incrementAndGet();
+                onMessageList.add(msg);
+            }
+
+            @Override
+            public String getTopic() {
+                return "company";
+            }
+        };
+
+        //subscribe to "inMemory" broker per topic
+        InMemoryBroker.subscribe(subscriberCompany);
+
+        String streams = "" +
+                "@App:name('TestExecutionPlan')" +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "@sink(type='inMemory', topic='company', @map(type='xml', " +
+                "enclosing.element='<portfolio>',validate.xml='true'," +
+                "@payload(\"<StockData><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData>\"))) " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
+
+        executionPlanRuntime.start();
+        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{ "WSO2#@$", 55.6f, 100L});
+        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{ "IBM", 75.6f, 100L});
+        stockStream.send(new Event[]{ wso2Event, ibmEvent});
+        Thread.sleep(100);
+
+        //assert event count
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, companyCount.get());
+        //assert default mapping
+        AssertJUnit.assertEquals("Incorrect mapping!",
+                "<portfolio>" +
+                        "<StockData><Symbol>WSO2#@$</Symbol><Price>55.6</Price></StockData>" +
+                        "<StockData><Symbol>IBM</Symbol><Price>75.6</Price></StockData></portfolio>",
+                onMessageList.get(0).toString());
+        executionPlanRuntime.shutdown();
+
+        //unsubscribe from "inMemory" broker per topic
+        InMemoryBroker.unsubscribe(subscriberCompany);
+        siddhiManager.shutdown();
+    }
+
+    @Test
+    public void negativeTestXMLOutputCustomMappingEventsWithXMLValidation() throws InterruptedException {
+        log.info("Negative test case for testing whether events are dropped when XML validation is enabled" +
+                " and a malformed XML events is generated as a result of output mapping.");
+        InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                wso2Count.incrementAndGet();
+            }
+
+            @Override
+            public String getTopic() {
+                return "WSO2";
+            }
+        };
+
+        InMemoryBroker.Subscriber subscriberIBM = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                ibmCount.incrementAndGet();
+            }
+
+            @Override
+            public String getTopic() {
+                return "IBM";
+            }
+        };
+
+        //subscribe to "inMemory" broker per topic
+        InMemoryBroker.subscribe(subscriberWSO2);
+        InMemoryBroker.subscribe(subscriberIBM);
+
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "define stream FooStream (symbol string, price float, volume long); " +
+                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', enclosing.element='<portfolio>', " +
+                "validate.xml='true', @payload(" +
+                "\"<StockData data><Symbol>{{symbol}}</Symbol><Price>{{price}}</Price></StockData data>\"))) " +
+                "define stream BarStream (symbol string, price float, volume long); ";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
+
+        executionPlanRuntime.start();
+        Event wso2Event = new Event(System.currentTimeMillis(), new Object[]{ "WSO2#@$", 55.6f, 100L});
+        Event ibmEvent = new Event(System.currentTimeMillis(), new Object[]{ "IBM", 75.6f, 100L});
+        stockStream.send(new Event[]{ wso2Event, ibmEvent});
+        Thread.sleep(100);
+
+        //assert event count
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 0, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 0, ibmCount.get());
+        executionPlanRuntime.shutdown();
+
+        //unsubscribe from "inMemory" broker per topic
+        InMemoryBroker.unsubscribe(subscriberWSO2);
+        InMemoryBroker.unsubscribe(subscriberIBM);
+        siddhiManager.shutdown();
+    }
+
+    @Test(expectedExceptions = SiddhiAppCreationException.class)
+    public void testXMLSinkmapperCustomtMappingForEventWithSiddhiQL123() throws InterruptedException {
+        log.info("Test custom xml mapping with SiddhiQL for multiple events with check payload parameter type");
+
+        String streams = "@App:name('TestSiddhiApp')" +
+                "define stream FooStream (symbol string, price1 Object , volume long, pay object); " +
+                "@sink(type='inMemory', topic='company', @map(type='xml', enclosing.element='<portfolio>', " +
+                "@payload('pay'))) " +
+                "define stream BarStream (symbol string, price1 Object, volume long, pay object);";
+
+        String query = "" +
+                "from FooStream " +
+                "select * " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        siddhiManager.createSiddhiAppRuntime(streams + query);
+
+    }
+
+    @Test
+    public void testXMLOutputCustomMappingWithCustomAttributes1() throws InterruptedException {
+        log.info("Test custom xml mapping with SiddhiQL for XML attributes");
+        List<Object> onMessageList = new ArrayList<Object>();
+
+        InMemoryBroker.Subscriber subscriberWSO2 = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                wso2Count.incrementAndGet();
+                onMessageList.add(msg);
+            }
+
+            @Override
+            public String getTopic() {
+                return "WSO2";
+            }
+        };
+
+        InMemoryBroker.Subscriber subscriberIBM = new InMemoryBroker.Subscriber() {
+            @Override
+            public void onMessage(Object msg) {
+                ibmCount.incrementAndGet();
+                onMessageList.add(msg);
+            }
+
+            @Override
+            public String getTopic() {
+                return "IBM";
+            }
+        };
+
+        //subscribe to "inMemory" broker per topic
+        InMemoryBroker.subscribe(subscriberWSO2);
+        InMemoryBroker.subscribe(subscriberIBM);
+
+        String streams = "" +
+                "@App:name('TestSiddhiApp')" +
+                "define stream FooStream (id int, symbol string, price float, volume long); " +
+                "@sink(type='inMemory', topic='{{symbol}}', @map(type='xml', @payload(" +
+                "\"<StockData><Symbol id=''{{id}}'' value=''{{price}}''>{{symbol}}</Symbol>"
+                + "<Price company=''{{symbol}}''>{{price}}</Price></StockData>\"))) " +
+                "define stream BarStream (id int, symbol string, price float, volume long); ";
+        String query = "" +
+                "from FooStream " +
+                "select id, symbol, price, volume " +
+                "insert into BarStream; ";
+
+        SiddhiManager siddhiManager = new SiddhiManager();
+        siddhiManager.setExtension("sink:inMemory", InMemorySink.class);
+        SiddhiAppRuntime executionPlanRuntime = siddhiManager.createSiddhiAppRuntime(streams + query);
+        InputHandler stockStream = executionPlanRuntime.getInputHandler("FooStream");
+
+        executionPlanRuntime.start();
+        stockStream.send(new Object[]{1, "WSO2", 55.6f, 100L});
+        stockStream.send(new Object[]{2, "IBM", 75.6f, 100L});
+        stockStream.send(new Object[]{3, "WSO2", 57.6f, 100L});
+        Thread.sleep(100);
+
+        //assert event count
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 2, wso2Count.get());
+        AssertJUnit.assertEquals("Incorrect number of events consumed!", 1, ibmCount.get());
+        //assert custom xml
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol id='1' value='55.6'>WSO2</Symbol>" +
+                "<Price company='WSO2'>55.6</Price></StockData>", onMessageList.get(0).toString());
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol id='2' value='75.6'>IBM</Symbol>" +
+                "<Price company='IBM'>75.6</Price></StockData>", onMessageList.get(1).toString());
+        AssertJUnit.assertEquals("Incorrect mapping!", "<StockData><Symbol id='3' value='57.6'>WSO2</Symbol>" +
+                "<Price company='WSO2'>57.6</Price></StockData>", onMessageList.get(2).toString());
+        executionPlanRuntime.shutdown();
+        //unsubscribe from "inMemory" broker per topic
+        InMemoryBroker.unsubscribe(subscriberWSO2);
+        InMemoryBroker.unsubscribe(subscriberIBM);
         siddhiManager.shutdown();
     }
 }
