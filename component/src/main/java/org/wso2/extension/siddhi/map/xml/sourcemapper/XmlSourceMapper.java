@@ -377,57 +377,59 @@ public class XmlSourceMapper extends SourceMapper {
             Attribute attribute = attributeList.get(i);
             String attributeName = attribute.getName();
             AXIOMXPath axiomXPath = xPathMap.get(attributeName);
-            try {
-                List selectedNodes = axiomXPath.selectNodes(eventOMElement);
-                if (selectedNodes.size() == 0) {
-                    if (failOnUnknownAttribute) {
-                        log.warn("Xpath: '" + axiomXPath.toString() + " did not yield any results. Hence dropping the" +
-                                " event : " + eventOMElement.toString());
-                        return null;
-                    } else {
-                        continue;
-                    }
-                }
-                //We will by default consider the first node. We are not logging this to get rid of an if condition.
-                Object elementObj = selectedNodes.get(0);
-                if (elementObj instanceof OMElement) {
-                    OMElement element = (OMElement) elementObj;
-                    if (element.getFirstElement() != null) {
-                        if (attribute.getType().equals(Attribute.Type.STRING)) {
-                            data[i] = element.toString();
-                        } else {
-                            log.warn("XPath: " + axiomXPath.toString() + " did not return a leaf element and stream " +
-                                    "definition is not expecting a String attribute. Hence dropping the event: " +
-                                    eventOMElement.toString());
+            if (axiomXPath != null) { //can be null in transport properties scenario
+                try {
+                    List selectedNodes = axiomXPath.selectNodes(eventOMElement);
+                    if (selectedNodes.size() == 0) {
+                        if (failOnUnknownAttribute) {
+                            log.warn("Xpath: '" + axiomXPath.toString() + " did not yield any results. Hence dropping "
+                                             + "the event : " + eventOMElement.toString());
                             return null;
+                        } else {
+                            continue;
                         }
-                    } else {
-                        String attributeValue = element.getText();
-                        try {
-                            data[i] = attributeConverter.getPropertyValue(attributeValue, attribute.getType());
-                        } catch (SiddhiAppRuntimeException | NumberFormatException e) {
-                            if (failOnUnknownAttribute) {
-                                log.warn("Error occurred when extracting attribute value. Cause: " + e.getMessage() +
-                                        ". Hence dropping the event: " + eventOMElement.toString());
+                    }
+                    //We will by default consider the first node. We are not logging this to get rid of an if condition.
+                    Object elementObj = selectedNodes.get(0);
+                    if (elementObj instanceof OMElement) {
+                        OMElement element = (OMElement) elementObj;
+                        if (element.getFirstElement() != null) {
+                            if (attribute.getType().equals(Attribute.Type.STRING)) {
+                                data[i] = element.toString();
+                            } else {
+                                log.warn("XPath: " + axiomXPath.toString() + " did not return a leaf element and "
+                                                 + "stream definition is not expecting a String attribute. Hence "
+                                                 + "dropping the event: " + eventOMElement.toString());
                                 return null;
                             }
+                        } else {
+                            String attributeValue = element.getText();
+                            try {
+                                data[i] = attributeConverter.getPropertyValue(attributeValue, attribute.getType());
+                            } catch (SiddhiAppRuntimeException | NumberFormatException e) {
+                                if (failOnUnknownAttribute) {
+                                    log.warn("Error occurred when extracting attribute value. Cause: " + e.getMessage()
+                                            + ". Hence dropping the event: " + eventOMElement.toString());
+                                    return null;
+                                }
+                            }
+                        }
+                    } else if (elementObj instanceof OMAttribute) {
+                        OMAttribute omAttribute = (OMAttribute) elementObj;
+                        try {
+                            data[i] = attributeConverter.getPropertyValue(omAttribute.getAttributeValue(),
+                                                                          attribute.getType());
+                        } catch (SiddhiAppRuntimeException | NumberFormatException e) {
+                            log.warn("Error occurred when extracting attribute value. Cause: " + e.getMessage() +
+                                    ". Hence dropping the event: " + eventOMElement.toString());
+                            return null;
                         }
                     }
-                } else if (elementObj instanceof OMAttribute) {
-                    OMAttribute omAttribute = (OMAttribute) elementObj;
-                    try {
-                        data[i] = attributeConverter.getPropertyValue(omAttribute.getAttributeValue(),
-                                                                      attribute.getType());
-                    } catch (SiddhiAppRuntimeException | NumberFormatException e) {
-                        log.warn("Error occurred when extracting attribute value. Cause: " + e.getMessage() +
-                                ". Hence dropping the event: " + eventOMElement.toString());
-                        return null;
-                    }
+                } catch (JaxenException e) {
+                    log.warn("Error occurred when selecting attribute: " + attributeName
+                            + " in the input event, using the given XPath: " + xPathMap.get(attributeName).toString());
+                    return null;
                 }
-            } catch (JaxenException e) {
-                log.warn("Error occurred when selecting attribute: " + attributeName
-                        + " in the input event, using the given XPath: " + xPathMap.get(attributeName).toString());
-                return null;
             }
         }
         return event;
