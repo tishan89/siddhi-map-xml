@@ -253,6 +253,10 @@ public class XmlSourceMapper extends SourceMapper {
 
     }
 
+    @Override protected boolean allowNullInTransportProperties() {
+        return !failOnUnknownAttribute;
+    }
+
     /**
      * Converts an event from an XML string to {@link Event}
      *
